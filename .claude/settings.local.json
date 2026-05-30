@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(rm -rf /tmp/tsvocal-next)",
+      "Bash(npx --yes create-next-app@latest /tmp/tsvocal-next --ts --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --turbopack --skip-install --disable-git --yes)",
+      "Bash(cd *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(git check-ignore *)",
+      "Bash(tee /tmp/dev.log)",
+      "Bash(curl -sf http://localhost:3000/)",
+      "Bash(curl -s -o /tmp/admin-login.html -w \"%{http_code}\\\\n\" http://localhost:3000/admin/login)",
+      "Read(//tmp/**)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 *)",
+      "Bash(kill 3242)",
+      "Bash(kill -9 3242)",
+      "Bash(tee /tmp/dev2.log)",
+      "Bash(curl -sf http://localhost:3000/ -o /tmp/page2.html)"
+    ]
+  }
+}
