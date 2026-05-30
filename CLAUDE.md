@@ -129,7 +129,7 @@ S3_BUCKET_NAME=
 ## AWS 자격증명
 
 - **절대 이 파일에 키를 적지 말 것.** 키는 `.env.local`(gitignored)에 보관.
-- 환경변수: `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- 환경변수: `APP_REGION`, `APP_ACCESS_KEY_ID`, `APP_SECRET_ACCESS_KEY` (Amplify Hosting이 주입하는 `AWS_*`와 충돌 방지를 위해 `APP_` 접두사 사용)
 - 테이블/버킷: `DYNAMODB_ADMINS_TABLE=Admins`, `DYNAMODB_ACADEMY_TABLE=AcademyData`, `S3_BUCKET_NAME=tsvocal`
 - Amplify 배포에서는 콘솔 환경변수에 동일 키를 설정
 - 키 노출 시 즉시 AWS IAM 콘솔에서 Deactivate → 새 키 발급 → `.env.local` 업데이트

@@ -17,7 +17,14 @@
       "Bash(kill 3242)",
       "Bash(kill -9 3242)",
       "Bash(tee /tmp/dev2.log)",
-      "Bash(curl -sf http://localhost:3000/ -o /tmp/page2.html)"
+      "Bash(curl -sf http://localhost:3000/ -o /tmp/page2.html)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(tee /tmp/dev3.log)",
+      "Bash(curl -sf http://localhost:3000/ -o /dev/null)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} /\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} /admin/login\\\\n\" http://localhost:3000/admin/login)",
+      "Bash(curl -s -o /tmp/setup-probe.html -w \"%{http_code}\\\\n\" http://localhost:3000/admin/setup)",
+      "Bash(grep -vE \"React DevTools|^$\")"
     ]
   }
 }
