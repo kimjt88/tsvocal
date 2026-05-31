@@ -7,22 +7,46 @@ applications:
             - npm ci --include=dev
         build:
           commands:
-            # Diagnostic: confirm which Amplify console env vars reach the build container.
-            - echo "--- env vars exposed to build (names only) ---"
-            - env | cut -d= -f1 | grep -E '^(APP_|DYNAMODB_|S3_|ADMIN_|NEXT_PUBLIC_|AWS_)' | sort || echo "(none)"
-            - echo "--- end ---"
-            # Forward console env vars to .env.production so Next.js loads them at runtime.
-            - env | grep -E '^(APP_|DYNAMODB_|S3_|ADMIN_|NEXT_PUBLIC_)=' >> .env.production || true
-            - echo "Wrote $(wc -l < .env.production 2>/dev/null || echo 0) env vars to .env.production"
-            - npm run build
-            # CRITICAL: artifact baseDirectory is .next, so the project-root .env.production is NOT
-            # packaged into the SSR runtime by default. Copy it into .next/ (and standalone/ if present)
-            # so the SSR Lambda's cwd contains it and @next/env loads APP_*/ADMIN_SESSION_SECRET.
-            - cp .env.production .next/.env.production 2>/dev/null || true
-            - test -d .next/standalone && cp .env.production .next/standalone/.env.production || true
-            - echo "--- .env.production locations ---"
-            - ls -la .env.production .next/.env.production .next/standalone/.env.production 2>/dev/null || true
-            - echo "--- end ---"
+            # Run everything in one shell block. CodeBuild executes each "- item"
+            # as a separate shell, and user-supplied env vars sometimes don't
+            # propagate to later commands. Putting it all in one block guarantees
+            # the same shell environment throughout.
+            - |
+              set -e
+              echo "--- env vars exposed to build (names only) ---"
+              env | cut -d= -f1 | grep -E '^(APP_|DYNAMODB_|S3_|ADMIN_|NEXT_PUBLIC_|AWS_)' | sort || echo "(none)"
+              echo "--- end ---"
+
+              echo "--- direct variable readability check ---"
+              for v in APP_REGION APP_ACCESS_KEY_ID APP_SECRET_ACCESS_KEY ADMIN_SESSION_SECRET DYNAMODB_ADMINS_TABLE DYNAMODB_ACADEMY_TABLE S3_BUCKET_NAME NEXT_PUBLIC_S3_BASE_URL; do
+                val=$(printenv "$v" 2>/dev/null || true)
+                if [ -n "$val" ]; then
+                  printf '  %s: SET (%d chars)\n' "$v" "${#val}"
+                else
+                  printf '  %s: EMPTY or UNSET\n' "$v"
+                fi
+              done
+              echo "--- end ---"
+
+              # Write .env.production using printenv per variable (more robust than env|grep).
+              : > .env.production
+              for v in APP_REGION APP_ACCESS_KEY_ID APP_SECRET_ACCESS_KEY ADMIN_SESSION_SECRET DYNAMODB_ADMINS_TABLE DYNAMODB_ACADEMY_TABLE S3_BUCKET_NAME NEXT_PUBLIC_S3_BASE_URL; do
+                val=$(printenv "$v" 2>/dev/null || true)
+                if [ -n "$val" ]; then
+                  printf '%s=%s\n' "$v" "$val" >> .env.production
+                fi
+              done
+              echo "Wrote $(wc -l < .env.production) env vars to .env.production ($(wc -c < .env.production) bytes)"
+
+              npm run build
+
+              # Bundle .env.production into the SSR runtime artifact.
+              cp .env.production .next/.env.production 2>/dev/null || true
+              test -d .next/standalone && cp .env.production .next/standalone/.env.production || true
+
+              echo "--- .env.production locations ---"
+              ls -la .env.production .next/.env.production .next/standalone/.env.production 2>/dev/null || true
+              echo "--- end ---"
       artifacts:
         baseDirectory: .next
         files:
