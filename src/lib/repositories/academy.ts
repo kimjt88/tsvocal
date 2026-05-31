@@ -19,6 +19,9 @@ export type Academy = {
   mapEmbedUrl?: string;
   mapKakaoRoughKey?: string;
   mapKakaoRoughTimestamp?: string;
+  registrationNumber?: string;
+  representativeName?: string;
+  businessNumber?: string;
   updatedAt: string;
 };
 

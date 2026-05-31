@@ -16,4 +16,5 @@ export const env = {
   academyTable: process.env.DYNAMODB_ACADEMY_TABLE ?? "AcademyData",
   s3Bucket: process.env.S3_BUCKET_NAME ?? "tsvocal",
   sessionSecret: required("ADMIN_SESSION_SECRET"),
+  encryptionKey: required("APP_ENCRYPTION_KEY"),
 };

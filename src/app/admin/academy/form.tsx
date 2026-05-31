@@ -17,6 +17,9 @@ type Defaults = {
   youtubeUrl: string;
   instagramUrl: string;
   mapEmbedUrl: string;
+  registrationNumber: string;
+  representativeName: string;
+  businessNumber: string;
 };
 
 function SubmitButton() {
@@ -69,6 +72,21 @@ export function AcademyForm({ defaults }: { defaults: Defaults }) {
         <Field label="인스타그램 URL">
           <Input name="instagramUrl" type="url" defaultValue={defaults.instagramUrl} placeholder="https://instagram.com/..." />
         </Field>
+      </Card>
+
+      <Card className="p-6 space-y-4">
+        <div className="text-sm font-medium text-slate-900">사업자 정보 (푸터 노출)</div>
+        <Field label="학원설립운영등록 번호" hint="예: 제0000호">
+          <Input name="registrationNumber" defaultValue={defaults.registrationNumber} placeholder="제0000호" />
+        </Field>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label="대표자명">
+            <Input name="representativeName" defaultValue={defaults.representativeName} placeholder="홍길동" />
+          </Field>
+          <Field label="사업자등록번호" hint="예: 000-00-00000">
+            <Input name="businessNumber" defaultValue={defaults.businessNumber} placeholder="000-00-00000" />
+          </Field>
+        </div>
       </Card>
 
       <Card className="p-6 space-y-4">

@@ -110,43 +110,134 @@ export default async function Home() {
       <section className="block" id="program" style={{ paddingTop: 0 }}>
         <div className="wrap">
           <div className="sec-head">
-            <span className="eyebrow">Program</span>
-            <h2>무엇을 배우고 싶으세요?</h2>
-            <p>취미반과 프로/입시반을 모두 운영합니다.</p>
+            <span className="eyebrow">Vocal Curriculum</span>
+            <h2>Time Save 4단계 커리큘럼</h2>
+            <p>믹스보이스 발성 · 미국 IVA · 세스릭스 발성법 · 음성 교정 · 뮤지컬·성악 · 실용음악 입시까지. 돌아가지 않도록 검증된 순서로 진행합니다.</p>
           </div>
-          <div className="prog-list">
-            <a className="prog-row" href="#">
-              <div className="no">01</div>
-              <h3>
-                보컬<small>Vocal</small>
-              </h3>
-              <div className="desc">믹스보이스 발성 · 미국 IVA · 세스릭스 발성법 · 뮤지컬 · 성악 · 음성 교정</div>
-              <div className="go">자세히 →</div>
-            </a>
-            <a className="prog-row" href="#">
-              <div className="no">02</div>
-              <h3>
-                피아노<small>Piano</small>
-              </h3>
-              <div className="desc">재즈 · 클래식 · 반주법(가요·팝·CCM) · 시창청음</div>
-              <div className="go">자세히 →</div>
-            </a>
-            <a className="prog-row" href="#">
-              <div className="no">03</div>
-              <h3>
-                작곡<small>Songwriting</small>
-              </h3>
-              <div className="desc">가요 · 팝 · 뮤지컬 · CCM · 싱어송라이터 · 미디</div>
-              <div className="go">자세히 →</div>
-            </a>
-            <a className="prog-row" href="#">
-              <div className="no">04</div>
-              <h3>
-                보컬 트레이닝<small>Teacher Training</small>
-              </h3>
-              <div className="desc">TS 보컬 테크닉 교수법 · 보컬 트레이너 양성</div>
-              <div className="go">자세히 →</div>
-            </a>
+          <div className="steps">
+            <div className="step">
+              <div className="n">01</div>
+              <h3>음성 진단</h3>
+              <p>음역대·호흡·발성 습관을 진단하고 목표를 설정합니다.</p>
+            </div>
+            <div className="step">
+              <div className="n">02</div>
+              <h3>발성 교정</h3>
+              <p>호흡 지지와 후두 안정으로 무리 없는 소리의 기초를 잡습니다.</p>
+            </div>
+            <div className="step">
+              <div className="n">03</div>
+              <h3>믹스보이스</h3>
+              <p>흉성과 두성을 연결해 편안한 고음과 음색을 확장합니다.</p>
+            </div>
+            <div className="step">
+              <div className="n">04</div>
+              <h3>곡 적용 · 완성</h3>
+              <p>원하는 곡에 테크닉을 적용해 무대에서 쓸 수 있게 완성합니다.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="block" id="classes" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">Classes</span>
+            <h2>대상별 반</h2>
+            <p>취미부터 입시·프로까지, 목표에 맞는 반으로 시작하세요.</p>
+          </div>
+          <div className="cls-grid">
+            <div className="cls">
+              <div className="badge">Hobby</div>
+              <h3>취미반</h3>
+              <div className="for">노래가 좋아서 시작하는 분</div>
+              <ul>
+                <li>스트레스 없이 즐기는 1:1 레슨</li>
+                <li>좋아하는 곡 중심 진행</li>
+                <li>발성 기초 + 음정·박자 교정</li>
+              </ul>
+              <div className="price">
+                <b>주 1회</b> <span>/ 회당 50분</span>
+              </div>
+              <a className="btn btn-primary" href="/apply">
+                체험 신청
+              </a>
+            </div>
+            <div className="cls feature">
+              <div className="badge">Pro · 추천</div>
+              <h3>실력 향상반</h3>
+              <div className="for">제대로 배우고 싶은 분</div>
+              <ul>
+                <li>믹스보이스 집중 트레이닝</li>
+                <li>매 수업 녹음 + 피드백</li>
+                <li>연습실 무료 대여</li>
+                <li>담임 강사 책임 관리</li>
+              </ul>
+              <div className="price">
+                <b>주 1~2회</b> <span>/ 회당 50분</span>
+              </div>
+              <a className="btn btn-primary" href="/apply">
+                체험 신청
+              </a>
+            </div>
+            <div className="cls">
+              <div className="badge">Admission</div>
+              <h3>입시반</h3>
+              <div className="for">실용음악과 진학 준비생</div>
+              <ul>
+                <li>지정곡·자유곡 완성</li>
+                <li>시창청음 · 코드 반주 병행</li>
+                <li>입시 일정 맞춤 플랜</li>
+              </ul>
+              <div className="price">
+                <b>주 2회+</b> <span>/ 맞춤 편성</span>
+              </div>
+              <a className="btn btn-primary" href="/apply">
+                체험 신청
+              </a>
+            </div>
+          </div>
+          <p style={{ textAlign: "center", color: "var(--muted)", fontSize: "12.5px", marginTop: "18px", opacity: 0.8 }}>
+            * 횟수·구성은 예시입니다. 실제 수강료·시간표를 어드민에서 갱신할 수 있어요.
+          </p>
+        </div>
+      </section>
+
+      <section className="block" id="how" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">How we teach</span>
+            <h2>수업은 이렇게 진행돼요</h2>
+          </div>
+          <div className="how-grid">
+            <div className="how">
+              <div className="ic">◎</div>
+              <div>
+                <h3>1:1 개인 맞춤</h3>
+                <p>그룹이 아닌 개인 레슨으로, 나의 음색과 진도에 맞춰 진행합니다.</p>
+              </div>
+            </div>
+            <div className="how">
+              <div className="ic">●</div>
+              <div>
+                <h3>매 수업 녹음</h3>
+                <p>레슨을 녹음해 변화를 직접 확인하고 복습할 수 있습니다.</p>
+              </div>
+            </div>
+            <div className="how">
+              <div className="ic">♪</div>
+              <div>
+                <h3>연습실 무료 대여</h3>
+                <p>수강생은 빈 시간 연습실을 무료로 사용할 수 있습니다.</p>
+              </div>
+            </div>
+            <div className="how">
+              <div className="ic">✦</div>
+              <div>
+                <h3>담임 책임 관리</h3>
+                <p>한 명의 담임 강사가 목표 달성까지 함께합니다.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -343,7 +434,7 @@ export default async function Home() {
               지금 무료로 시작하세요
             </h2>
             <p>취미반 · 프로반 · 티처트레이닝 모두 체험 가능합니다.</p>
-            <a className="btn btn-primary" href="#contact">
+            <a className="btn btn-primary" href="/apply">
               무료 체험레슨 신청
             </a>
           </div>

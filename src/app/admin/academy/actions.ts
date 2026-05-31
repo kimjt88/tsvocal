@@ -23,6 +23,9 @@ export async function saveAcademyAction(_prev: FormState, formData: FormData): P
   const naverCafeUrl = String(formData.get("naverCafeUrl") ?? "").trim() || undefined;
   const youtubeUrl = String(formData.get("youtubeUrl") ?? "").trim() || undefined;
   const instagramUrl = String(formData.get("instagramUrl") ?? "").trim() || undefined;
+  const registrationNumber = String(formData.get("registrationNumber") ?? "").trim() || undefined;
+  const representativeName = String(formData.get("representativeName") ?? "").trim() || undefined;
+  const businessNumber = String(formData.get("businessNumber") ?? "").trim() || undefined;
   const mapEmbedRaw = String(formData.get("mapEmbedUrl") ?? "").trim();
   let mapEmbedUrl: string | undefined;
   let mapKakaoRoughKey: string | undefined;
@@ -72,6 +75,9 @@ export async function saveAcademyAction(_prev: FormState, formData: FormData): P
       mapEmbedUrl,
       mapKakaoRoughKey,
       mapKakaoRoughTimestamp,
+      registrationNumber,
+      representativeName,
+      businessNumber,
     });
   } catch (e) {
     console.error("saveAcademy failed", e);

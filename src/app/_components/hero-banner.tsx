@@ -94,7 +94,7 @@ export function HeroBanner() {
               TS는 Time Save. 불필요한 시간 낭비 없이, 검증된 1:1 맞춤 커리큘럼으로 가장 짧은 길을 안내합니다.
             </p>
             <div className="hb-actions">
-              <a className="btn btn-primary" href="#contact">
+              <a className="btn btn-primary" href="/apply">
                 무료 체험레슨 신청
               </a>
               <a className="btn btn-ghost" href="#program">
@@ -124,7 +124,7 @@ export function HeroBanner() {
               목에 무리 없는 발성, 편안한 고음. 음역대 진단으로 시작해 나에게 꼭 맞는 트레이닝을 설계합니다.
             </p>
             <div className="hb-actions">
-              <a className="btn btn-primary" href="#contact">
+              <a className="btn btn-primary" href="/apply">
                 무료 체험레슨 신청
               </a>
               <a className="btn btn-ghost" href="#program">
@@ -154,7 +154,7 @@ export function HeroBanner() {
               담임 강사 책임 관리와 연습실 무료 대여까지. 목표가 무엇이든 끝까지 함께 성장합니다.
             </p>
             <div className="hb-actions">
-              <a className="btn btn-primary" href="#contact">
+              <a className="btn btn-primary" href="/apply">
                 무료 체험레슨 신청
               </a>
               <a className="btn btn-ghost" href="#why">

@@ -22,6 +22,14 @@ const STATUS_TONE: Record<EnrollmentStatus, "neutral" | "success" | "warning" | 
   cancelled: "danger",
 };
 
+const PURPOSE_LABEL: Record<string, string> = {
+  hobby: "취미",
+  skill: "실력 향상",
+  admission: "입시 준비",
+  pro: "프로 활동",
+  other: "기타",
+};
+
 function fmt(iso: string) {
   const d = new Date(iso);
   return d.toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" });
@@ -47,7 +55,8 @@ export default async function EnrollmentsPage() {
                 <th className="px-5 py-3 font-medium">접수</th>
                 <th className="px-5 py-3 font-medium">이름</th>
                 <th className="px-5 py-3 font-medium">연락처</th>
-                <th className="px-5 py-3 font-medium">관심 프로그램</th>
+                <th className="px-5 py-3 font-medium">연령</th>
+                <th className="px-5 py-3 font-medium">레슨 목적</th>
                 <th className="px-5 py-3 font-medium">상태</th>
                 <th className="px-5 py-3 font-medium w-1"></th>
               </tr>
@@ -58,7 +67,10 @@ export default async function EnrollmentsPage() {
                   <td className="px-5 py-3 text-slate-500 whitespace-nowrap">{fmt(e.createdAt)}</td>
                   <td className="px-5 py-3 font-medium text-slate-900">{e.name}</td>
                   <td className="px-5 py-3 text-slate-700">{e.phone}</td>
-                  <td className="px-5 py-3 text-slate-600">{e.programName ?? "—"}</td>
+                  <td className="px-5 py-3 text-slate-600">{e.age ?? "—"}</td>
+                  <td className="px-5 py-3 text-slate-600">
+                    {e.lessonPurpose ? (PURPOSE_LABEL[e.lessonPurpose] ?? e.lessonPurpose) : (e.programName ?? "—")}
+                  </td>
                   <td className="px-5 py-3">
                     <Badge tone={STATUS_TONE[e.status]}>{STATUS_LABEL[e.status]}</Badge>
                   </td>

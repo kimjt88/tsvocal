@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-const TARGETS = ".sec-head,.feat,.prog-row,.ins,.ba-card,.rev,.cta-band,.contact-grid";
-const STAGGER_PARENTS = [".feat-grid", ".ins-grid", ".ba-grid", ".rev-grid", ".prog-list"];
+const TARGETS = ".sec-head,.feat,.prog-row,.step,.cls,.how,.ins,.ba-card,.rev,.cta-band,.contact-grid";
+const STAGGER_PARENTS = [".feat-grid", ".ins-grid", ".ba-grid", ".rev-grid", ".prog-list", ".steps", ".cls-grid", ".how-grid"];
 
 export function ScrollReveal() {
   useEffect(() => {

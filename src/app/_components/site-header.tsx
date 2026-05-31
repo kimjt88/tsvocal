@@ -67,7 +67,7 @@ export function SiteHeader({
             </svg>
             <span className="soc-label">유튜브</span>
           </a>
-          <a className="nav-cta" href="#contact">
+          <a className="nav-cta" href="/apply">
             체험레슨 신청
           </a>
         </div>

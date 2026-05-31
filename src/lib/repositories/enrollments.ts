@@ -1,5 +1,6 @@
 import "server-only";
 
+import { decrypt, encrypt } from "../crypto";
 import { deleteItem, getItem, listByPk, newId, putItem } from "./_base";
 
 const PK = "ENROLLMENT";
@@ -13,6 +14,12 @@ export type Enrollment = {
   name: string;
   phone: string;
   email?: string;
+  age?: string;
+  gender?: string;
+  lessonPurpose?: string;
+  preferredLessonTime?: string;
+  musicGenre?: string;
+  consent?: boolean;
   programId?: string;
   programName?: string;
   message?: string;
@@ -22,13 +29,26 @@ export type Enrollment = {
   updatedAt: string;
 };
 
+/**
+ * Phone is encrypted at rest. The repo hides this: callers always work with
+ * plaintext, and storage always holds ciphertext. Legacy plaintext records
+ * (from before encryption was added) are read through decrypt() which passes
+ * them through unchanged.
+ */
+function decryptItem(item: Enrollment): Enrollment {
+  return { ...item, phone: decrypt(item.phone) ?? "" };
+}
+
 export async function listEnrollments() {
   const items = await listByPk<Enrollment>(PK);
-  return items.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  return items
+    .map(decryptItem)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 
 export async function getEnrollment(id: string) {
-  return getItem<Enrollment>(PK, id);
+  const item = await getItem<Enrollment>(PK, id);
+  return item ? decryptItem(item) : null;
 }
 
 export type EnrollmentInput = Omit<
@@ -39,24 +59,37 @@ export type EnrollmentInput = Omit<
 export async function createEnrollment(input: EnrollmentInput) {
   const now = new Date().toISOString();
   const id = newId();
-  const item: Enrollment = { ...input, pk: PK, sk: id, id, createdAt: now, updatedAt: now };
-  await putItem(item);
-  return item;
+  const stored: Enrollment = {
+    ...input,
+    phone: encrypt(input.phone) ?? input.phone,
+    pk: PK,
+    sk: id,
+    id,
+    createdAt: now,
+    updatedAt: now,
+  };
+  await putItem(stored);
+  return { ...stored, phone: input.phone }; // return plaintext to caller
 }
 
 export async function updateEnrollment(id: string, input: Partial<EnrollmentInput>) {
-  const existing = await getEnrollment(id);
-  if (!existing) throw new Error("not_found");
-  const item: Enrollment = {
-    ...existing,
-    ...input,
+  // Read raw item directly (skipping our decrypt) so we keep the existing
+  // ciphertext intact unless the caller explicitly provides a new phone.
+  const existingRaw = await getItem<Enrollment>(PK, id);
+  if (!existingRaw) throw new Error("not_found");
+  const encryptedInput = input.phone
+    ? { ...input, phone: encrypt(input.phone) ?? input.phone }
+    : input;
+  const stored: Enrollment = {
+    ...existingRaw,
+    ...encryptedInput,
     pk: PK,
     sk: id,
     id,
     updatedAt: new Date().toISOString(),
   };
-  await putItem(item);
-  return item;
+  await putItem(stored);
+  return decryptItem(stored);
 }
 
 export async function deleteEnrollment(id: string) {

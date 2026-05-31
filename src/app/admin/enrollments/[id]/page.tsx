@@ -8,6 +8,20 @@ import { EnrollmentForm } from "../form";
 
 export const dynamic = "force-dynamic";
 
+const GENDER_LABEL: Record<string, string> = {
+  female: "여성",
+  male: "남성",
+  other: "응답 안 함",
+};
+
+const PURPOSE_LABEL: Record<string, string> = {
+  hobby: "취미",
+  skill: "실력 향상",
+  admission: "입시 준비",
+  pro: "프로 활동",
+  other: "기타",
+};
+
 export default async function EnrollmentDetailPage({
   params,
 }: {
@@ -34,15 +48,32 @@ export default async function EnrollmentDetailPage({
           <dl className="space-y-2 text-sm">
             <Row k="이름" v={e.name} />
             <Row k="연락처" v={e.phone} />
-            <Row k="이메일" v={e.email ?? "—"} />
-            <Row k="관심 프로그램" v={e.programName ?? "—"} />
+            <Row k="연령" v={e.age ?? "—"} />
+            <Row k="성별" v={GENDER_LABEL[e.gender ?? ""] ?? e.gender ?? "—"} />
+            {e.email && <Row k="이메일" v={e.email} />}
+            <Row k="개인정보 동의" v={e.consent ? "동의" : "미동의"} />
           </dl>
         </Card>
         <Card className="p-5">
-          <div className="text-xs text-slate-500 mb-3">메시지</div>
-          <p className="text-sm whitespace-pre-wrap text-slate-700">
-            {e.message?.trim() ? e.message : <span className="text-slate-400">메시지 없음</span>}
-          </p>
+          <div className="text-xs text-slate-500 mb-3">레슨 요청 사항</div>
+          <dl className="space-y-2 text-sm">
+            <Row
+              k="레슨 목적"
+              v={
+                e.lessonPurpose
+                  ? (PURPOSE_LABEL[e.lessonPurpose] ?? e.lessonPurpose)
+                  : (e.programName ?? "—")
+              }
+            />
+            <Row k="희망 시간" v={e.preferredLessonTime ?? "—"} />
+            <Row k="선호 장르" v={e.musicGenre ?? "—"} />
+            {e.message?.trim() && (
+              <div className="pt-2 border-t border-slate-100">
+                <dt className="text-slate-500 mb-1 text-xs">기타 메시지</dt>
+                <dd className="text-slate-700 whitespace-pre-wrap">{e.message}</dd>
+              </div>
+            )}
+          </dl>
         </Card>
       </div>
 

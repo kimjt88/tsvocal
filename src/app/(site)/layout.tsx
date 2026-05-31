@@ -15,6 +15,11 @@ export default async function SiteLayout({
   const academy = await getAcademy().catch(() => null);
   const naverCafeUrl = academy?.naverCafeUrl?.trim() || "https://cafe.naver.com";
   const youtubeUrl = academy?.youtubeUrl?.trim() || "https://youtube.com";
+  const academyName = academy?.name?.trim() || "TS보컬학원";
+  const academyTagline = academy?.tagline?.trim() || "Time Save Vocal";
+  const registrationNumber = academy?.registrationNumber?.trim() || "제0000호";
+  const representativeName = academy?.representativeName?.trim() || "○○○";
+  const businessNumber = academy?.businessNumber?.trim() || "000-00-00000";
 
   return (
     <div className="site-shell">
@@ -45,7 +50,7 @@ export default async function SiteLayout({
             </div>
           </div>
           <div>
-            © 2026 TS보컬학원 (Time Save Vocal). 학원설립운영등록 제0000호 · 대표 ○○○ · 사업자등록번호 000-00-00000
+            © 2026 {academyName} ({academyTagline}). 학원설립운영등록 {registrationNumber} · 대표 {representativeName} · 사업자등록번호 {businessNumber}
           </div>
         </div>
       </footer>

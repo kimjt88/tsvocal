@@ -18,7 +18,7 @@ applications:
               echo "--- end ---"
 
               echo "--- direct variable readability check ---"
-              for v in APP_REGION APP_ACCESS_KEY_ID APP_SECRET_ACCESS_KEY ADMIN_SESSION_SECRET DYNAMODB_ADMINS_TABLE DYNAMODB_ACADEMY_TABLE S3_BUCKET_NAME NEXT_PUBLIC_S3_BASE_URL; do
+              for v in APP_REGION APP_ACCESS_KEY_ID APP_SECRET_ACCESS_KEY ADMIN_SESSION_SECRET APP_ENCRYPTION_KEY DYNAMODB_ADMINS_TABLE DYNAMODB_ACADEMY_TABLE S3_BUCKET_NAME NEXT_PUBLIC_S3_BASE_URL; do
                 val=$(printenv "$v" 2>/dev/null || true)
                 if [ -n "$val" ]; then
                   printf '  %s: SET (%d chars)\n' "$v" "${#val}"
@@ -30,7 +30,7 @@ applications:
 
               # Write .env.production using printenv per variable (more robust than env|grep).
               : > .env.production
-              for v in APP_REGION APP_ACCESS_KEY_ID APP_SECRET_ACCESS_KEY ADMIN_SESSION_SECRET DYNAMODB_ADMINS_TABLE DYNAMODB_ACADEMY_TABLE S3_BUCKET_NAME NEXT_PUBLIC_S3_BASE_URL; do
+              for v in APP_REGION APP_ACCESS_KEY_ID APP_SECRET_ACCESS_KEY ADMIN_SESSION_SECRET APP_ENCRYPTION_KEY DYNAMODB_ADMINS_TABLE DYNAMODB_ACADEMY_TABLE S3_BUCKET_NAME NEXT_PUBLIC_S3_BASE_URL; do
                 val=$(printenv "$v" 2>/dev/null || true)
                 if [ -n "$val" ]; then
                   printf '%s=%s\n' "$v" "$val" >> .env.production

@@ -1,76 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
-
-const LOADER_SRC = "https://ssl.daumcdn.net/dmaps/map_js_init/roughmapLoader.js";
-
-type LanderOpts = { timestamp: string; key: string; mapWidth: string; mapHeight: string };
-type Lander = { render: () => void };
-
-declare global {
-  interface Window {
-    daum?: {
-      roughmap?: {
-        Lander: new (opts: LanderOpts) => Lander;
-        cdn?: string;
-      };
-    };
-  }
-}
-
-let loaderInitiated = false;
-
-// The Kakao loader script uses document.write() to inject the actual Lander script.
-// document.write is a no-op after the initial HTML parse, so when we attach the loader
-// dynamically (in useEffect), the inner Lander script never loads. Workaround: patch
-// document.write to convert any written <script src="..."> into a real appendChild,
-// then restore the original after the loader's onload fires.
-function loadLoaderOnce() {
-  if (typeof document === "undefined") return;
-  if (window.daum?.roughmap?.Lander) return;
-  if (loaderInitiated) return;
-  loaderInitiated = true;
-
-  const originalWrite = document.write;
-  document.write = function patchedWrite(html: string) {
-    const m = /<script[^>]*\ssrc=["']([^"']+)["']/i.exec(html);
-    if (m) {
-      const s = document.createElement("script");
-      s.src = m[1];
-      s.charset = "UTF-8";
-      document.head.appendChild(s);
-      return;
-    }
-    return originalWrite.call(document, html);
-  } as typeof document.write;
-
-  const loader = document.createElement("script");
-  loader.src = LOADER_SRC;
-  loader.charset = "UTF-8";
-  loader.className = "daum_roughmap_loader_script";
-  const restore = () => {
-    document.write = originalWrite;
-  };
-  loader.onload = restore;
-  loader.onerror = () => {
-    restore();
-    loaderInitiated = false; // allow retry on next mount
-  };
-  document.head.appendChild(loader);
-}
-
-function waitForLander(timeoutMs = 15000): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const start = Date.now();
-    const tick = () => {
-      if (window.daum?.roughmap?.Lander) return resolve();
-      if (Date.now() - start > timeoutMs) return reject(new Error("Kakao roughmap loader timeout"));
-      setTimeout(tick, 50);
-    };
-    tick();
-  });
-}
-
+/**
+ * Render the Kakao "지도 퍼가기" map inside an isolated iframe via srcDoc.
+ *
+ * Why: the official Kakao loader (roughmapLoader.js) injects the real Lander
+ * script via `document.write()`. document.write is a no-op once the document
+ * has finished parsing — which is always the case in a Next.js client component.
+ * Hosting the snippet inside its own iframe gives it a brand-new document that
+ * IS in the parsing phase, so document.write works naturally. Each React mount
+ * creates a fresh iframe → fresh document → predictable behavior across
+ * SPA back/forward navigation.
+ *
+ * Costs:
+ * - Each mount re-fetches roughmapLoader.js (~0.5KB) and roughmapLander.js
+ *   (~128KB), both served with browser cache headers, so subsequent loads
+ *   are nearly free.
+ * - The map is rendered in a separate document, so we can't reach into it
+ *   from React — but that's exactly the property we want.
+ */
 export function KakaoRoughMap({
   timestamp,
   mapKey,
@@ -78,37 +25,45 @@ export function KakaoRoughMap({
   timestamp: string;
   mapKey: string;
 }) {
-  useEffect(() => {
-    let cancelled = false;
-    loadLoaderOnce();
-    waitForLander()
-      .then(() => {
-        if (cancelled) return;
-        const container = document.getElementById(`daumRoughmapContainer${timestamp}`);
-        if (!container) return;
-        container.innerHTML = "";
-        try {
-          new window.daum!.roughmap!.Lander({
-            timestamp,
-            key: mapKey,
-            mapWidth: "100%",
-            mapHeight: "100%",
-          }).render();
-        } catch (e) {
-          console.error("Kakao roughmap render failed", e);
-        }
-      })
-      .catch((e) => console.error(e));
-    return () => {
-      cancelled = true;
-    };
-  }, [timestamp, mapKey]);
+  const srcDoc = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #0f1813; width: 100%; height: 100%; }
+  .root_daum_roughmap,
+  .root_daum_roughmap .wrap_map,
+  .root_daum_roughmap .wrap_map > .map { width: 100% !important; height: 100% !important; }
+</style>
+</head>
+<body>
+<div id="daumRoughmapContainer${timestamp}" class="root_daum_roughmap root_daum_roughmap_landing"></div>
+<script charset="UTF-8" src="https://ssl.daumcdn.net/dmaps/map_js_init/roughmapLoader.js"></script>
+<script charset="UTF-8">
+  new daum.roughmap.Lander({
+    "timestamp" : "${timestamp}",
+    "key" : "${mapKey}",
+    "mapWidth" : "100%",
+    "mapHeight" : "100%"
+  }).render();
+</script>
+</body>
+</html>`;
 
   return (
-    <div
-      id={`daumRoughmapContainer${timestamp}`}
-      className="root_daum_roughmap root_daum_roughmap_landing"
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+    <iframe
+      srcDoc={srcDoc}
+      title="학원 위치 지도"
+      loading="lazy"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        border: 0,
+        display: "block",
+      }}
     />
   );
 }

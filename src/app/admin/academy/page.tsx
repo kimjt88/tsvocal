@@ -39,6 +39,9 @@ export default async function AcademyPage() {
           youtubeUrl: academy?.youtubeUrl ?? "",
           instagramUrl: academy?.instagramUrl ?? "",
           mapEmbedUrl: mapDefault,
+          registrationNumber: academy?.registrationNumber ?? "",
+          representativeName: academy?.representativeName ?? "",
+          businessNumber: academy?.businessNumber ?? "",
         }}
       />
     </>

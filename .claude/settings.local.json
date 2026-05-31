@@ -37,7 +37,11 @@
       "Bash(sips --cropOffset 3500 0 -c 1800 1280 /tmp/full-tall.png --out /tmp/contact3.png)",
       "Bash(sips --cropOffset 5200 0 -c 1800 1280 /tmp/full-tall.png --out /tmp/contact4.png)",
       "Bash(echo \"PID $!\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code} /admin/teachers/new\\\\n\" http://localhost:3000/admin/teachers/new)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code} /admin/teachers/new\\\\n\" http://localhost:3000/admin/teachers/new)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }
