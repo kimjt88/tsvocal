@@ -24,7 +24,20 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code} /\\\\n\" http://localhost:3000/)",
       "Bash(curl -s -o /dev/null -w \"%{http_code} /admin/login\\\\n\" http://localhost:3000/admin/login)",
       "Bash(curl -s -o /tmp/setup-probe.html -w \"%{http_code}\\\\n\" http://localhost:3000/admin/setup)",
-      "Bash(grep -vE \"React DevTools|^$\")"
+      "Bash(grep -vE \"React DevTools|^$\")",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(curl -s \"http://localhost:3000/\")",
+      "Bash(curl -s \"http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0_p~x0.._.css\")",
+      "Bash(node *)",
+      "Bash(echo \"started PID $!\")",
+      "Bash(curl -sf http://localhost:3000/admin/setup -o /tmp/setup-check.html)",
+      "Bash(curl -s \"https://ssl.daumcdn.net/dmaps/map_js_init/roughmapLoader.js\" -o /tmp/kakao-loader.js)",
+      "Bash(sips -c 1500 1280 /tmp/home-tall.png --out /tmp/contact-crop.png)",
+      "Bash(sips -g pixelHeight -g pixelWidth /tmp/full-tall.png)",
+      "Bash(sips --cropOffset 3500 0 -c 1800 1280 /tmp/full-tall.png --out /tmp/contact3.png)",
+      "Bash(sips --cropOffset 5200 0 -c 1800 1280 /tmp/full-tall.png --out /tmp/contact4.png)",
+      "Bash(echo \"PID $!\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} /admin/teachers/new\\\\n\" http://localhost:3000/admin/teachers/new)"
     ]
   }
 }

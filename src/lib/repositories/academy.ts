@@ -16,6 +16,9 @@ export type Academy = {
   naverCafeUrl?: string;
   youtubeUrl?: string;
   instagramUrl?: string;
+  mapEmbedUrl?: string;
+  mapKakaoRoughKey?: string;
+  mapKakaoRoughTimestamp?: string;
   updatedAt: string;
 };
 

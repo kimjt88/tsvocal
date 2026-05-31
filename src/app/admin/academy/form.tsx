@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { saveAcademyAction, type FormState } from "./actions";
-import { Button, Card, Field, Input } from "../_components/ui";
+import { Button, Card, Field, Input, Textarea } from "../_components/ui";
 
 type Defaults = {
   name: string;
@@ -16,6 +16,7 @@ type Defaults = {
   naverCafeUrl: string;
   youtubeUrl: string;
   instagramUrl: string;
+  mapEmbedUrl: string;
 };
 
 function SubmitButton() {
@@ -67,6 +68,22 @@ export function AcademyForm({ defaults }: { defaults: Defaults }) {
         </Field>
         <Field label="인스타그램 URL">
           <Input name="instagramUrl" type="url" defaultValue={defaults.instagramUrl} placeholder="https://instagram.com/..." />
+        </Field>
+      </Card>
+
+      <Card className="p-6 space-y-4">
+        <div className="text-sm font-medium text-slate-900">오시는 길 지도</div>
+        <Field
+          label="지도 임베드 (카카오 ‘지도 퍼가기’ 권장)"
+          hint="카카오맵 → 우측 상단 ‘지도 퍼가기’ → 위치 설정 → ‘HTML 코드 가져오기’의 코드 전체를 복사해 붙여넣으면 됩니다. 구글 지도 iframe 코드/URL도 동일 칸에 붙여 넣을 수 있습니다. 비우면 지도는 표시되지 않습니다."
+        >
+          <Textarea
+            name="mapEmbedUrl"
+            defaultValue={defaults.mapEmbedUrl}
+            rows={8}
+            className="font-mono text-xs"
+            placeholder={'<div id="daumRoughmapContainer..."></div>\n<script ...></script>\n<script>new daum.roughmap.Lander({...}).render();</script>'}
+          />
         </Field>
       </Card>
 

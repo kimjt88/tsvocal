@@ -1,7 +1,66 @@
 /* eslint-disable @next/next/no-img-element */
 import { HeroBanner } from "../_components/hero-banner";
+import { KakaoRoughMap } from "../_components/kakao-rough-map";
+import { getAcademy } from "@/lib/repositories/academy";
+import { listTeachers } from "@/lib/repositories/teachers";
 
-export default function Home() {
+const S3_BASE = process.env.NEXT_PUBLIC_S3_BASE_URL ?? "";
+
+const FALLBACK_TEACHERS = [
+  {
+    name: "MASTER · J",
+    role: "Vocal / Educator",
+    photoUrl:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80&auto=format&fit=crop",
+  },
+  {
+    name: "수창 · SOOCHANG",
+    role: "Musical / Vocal",
+    photoUrl:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80&auto=format&fit=crop",
+  },
+  {
+    name: "예인 · YEIN",
+    role: "Classic / Vocal",
+    photoUrl:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&q=80&auto=format&fit=crop",
+  },
+  {
+    name: "예진 · YEJIN",
+    role: "Piano / Songwriting",
+    photoUrl:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=600&q=80&auto=format&fit=crop",
+  },
+];
+
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const [academy, teachersDb] = await Promise.all([
+    getAcademy().catch(() => null),
+    listTeachers().catch(() => []),
+  ]);
+  const activeTeachers = teachersDb.filter((t) => t.active);
+  const teachers =
+    activeTeachers.length > 0
+      ? activeTeachers.map((t) => ({
+          name: t.englishName ? `${t.name} · ${t.englishName}` : t.name,
+          role: t.role,
+          photoUrl: t.photoKey ? `${S3_BASE}/${encodeURI(t.photoKey)}` : "",
+        }))
+      : FALLBACK_TEACHERS;
+  const info = {
+    name: academy?.name ?? "TS보컬학원",
+    address: academy?.address ?? "서울 ○○구 ○○로 00, 0층 · ○○역 0번 출구 도보 5분",
+    phone: academy?.phone ?? "070-0000-0000",
+    hours: academy?.hours?.trim() || "평일 12:00 – 22:00 · 주말 11:00 – 18:00",
+    naverCafeUrl: academy?.naverCafeUrl?.trim() || "https://cafe.naver.com",
+    youtubeUrl: academy?.youtubeUrl?.trim() || "https://youtube.com",
+    instagramUrl: academy?.instagramUrl?.trim() || "",
+    mapEmbedUrl: academy?.mapEmbedUrl?.trim() || "",
+    mapKakaoRoughKey: academy?.mapKakaoRoughKey?.trim() || "",
+    mapKakaoRoughTimestamp: academy?.mapKakaoRoughTimestamp?.trim() || "",
+  };
   return (
     <>
       <HeroBanner />
@@ -100,58 +159,19 @@ export default function Home() {
             <p>실력과 티칭을 모두 갖춘 강사들이 함께합니다.</p>
           </div>
           <div className="ins-grid">
-            <div className="ins">
-              <div className="pic">
-                <img
-                  className="fill-slot"
-                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80&auto=format&fit=crop"
-                  alt="강사 사진"
-                />
+            {teachers.map((t, i) => (
+              <div className="ins" key={`${t.name}-${i}`}>
+                <div className="pic">
+                  {t.photoUrl ? (
+                    <img className="fill-slot" src={t.photoUrl} alt={`${t.name} 강사 사진`} />
+                  ) : null}
+                </div>
+                <div className="meta">
+                  <b>{t.name}</b>
+                  <span>{t.role}</span>
+                </div>
               </div>
-              <div className="meta">
-                <b>MASTER · J</b>
-                <span>Vocal / Educator</span>
-              </div>
-            </div>
-            <div className="ins">
-              <div className="pic">
-                <img
-                  className="fill-slot"
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80&auto=format&fit=crop"
-                  alt="강사 사진"
-                />
-              </div>
-              <div className="meta">
-                <b>수창 · SOOCHANG</b>
-                <span>Musical / Vocal</span>
-              </div>
-            </div>
-            <div className="ins">
-              <div className="pic">
-                <img
-                  className="fill-slot"
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&q=80&auto=format&fit=crop"
-                  alt="강사 사진"
-                />
-              </div>
-              <div className="meta">
-                <b>예인 · YEIN</b>
-                <span>Classic / Vocal</span>
-              </div>
-            </div>
-            <div className="ins">
-              <div className="pic">
-                <img
-                  className="fill-slot"
-                  src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=600&q=80&auto=format&fit=crop"
-                  alt="강사 사진"
-                />
-              </div>
-              <div className="meta">
-                <b>예진 · YEJIN</b>
-                <span>Piano / Songwriting</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -338,35 +358,58 @@ export default function Home() {
           </div>
           <div className="contact-grid">
             <div className="map-ph">
-              <span className="lbl">지도 영역 (네이버/카카오맵 임베드)</span>
-              <span className="pin" />
+              {info.mapKakaoRoughKey && info.mapKakaoRoughTimestamp ? (
+                <KakaoRoughMap
+                  timestamp={info.mapKakaoRoughTimestamp}
+                  mapKey={info.mapKakaoRoughKey}
+                />
+              ) : info.mapEmbedUrl ? (
+                <iframe
+                  src={info.mapEmbedUrl}
+                  title={`${info.name} 위치 지도`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    border: 0,
+                  }}
+                />
+              ) : (
+                <>
+                  <span className="lbl">지도 영역 (어드민 → 학원 기본정보에서 지도 코드 등록)</span>
+                  <span className="pin" />
+                </>
+              )}
             </div>
             <div className="contact-info">
-              <h3>TS보컬학원</h3>
+              <h3>{info.name}</h3>
               <div className="info-row">
                 <span className="k">주소</span>
-                <span>서울 ○○구 ○○로 00, 0층 · ○○역 0번 출구 도보 5분</span>
+                <span>{info.address}</span>
               </div>
               <div className="info-row">
                 <span className="k">전화</span>
-                <span>070-0000-0000</span>
+                <span>{info.phone}</span>
               </div>
               <div className="info-row">
                 <span className="k">시간</span>
-                <span>평일 12:00 – 22:00 · 주말 11:00 – 18:00</span>
+                <span>{info.hours}</span>
               </div>
               <div className="info-row">
                 <span className="k">SNS</span>
                 <span>네이버 카페 · 유튜브 · 인스타그램 · 블로그</span>
               </div>
               <div className="soc-group">
-                <a className="soc-btn naver" href="https://cafe.naver.com" target="_blank" rel="noopener">
+                <a className="soc-btn naver" href={info.naverCafeUrl} target="_blank" rel="noopener">
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M3 3h6.4l4.2 6.1V3H21v18h-6.4l-4.2-6.1V21H3V3z" />
                   </svg>
                   네이버 카페
                 </a>
-                <a className="soc-btn youtube" href="https://youtube.com" target="_blank" rel="noopener">
+                <a className="soc-btn youtube" href={info.youtubeUrl} target="_blank" rel="noopener">
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.8-1.8C19.3 5 12 5 12 5s-7.3 0-8.8.5A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.8 1.8C4.7 19 12 19 12 19s7.3 0 8.8-.5a2.5 2.5 0 0 0 1.8-1.8C23 15.2 23 12 23 12zM9.8 15.3V8.7l5.7 3.3-5.7 3.3z" />
                   </svg>

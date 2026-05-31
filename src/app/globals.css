@@ -129,7 +129,10 @@ body { -webkit-font-smoothing: antialiased; overflow-x: hidden; }
   .nav-right .soc-label { display: none; }
   .soc { width: 44px; padding: 0; }
 }
-@media (max-width: 880px) { .menu { display: none; } }
+@media (max-width: 880px) {
+  .menu { display: none; }
+  .nav-right .soc { display: none; }
+}
 
 /* buttons */
 .btn {
@@ -342,7 +345,13 @@ section.block { padding: 104px 0; position: relative; }
 .cta-band p { color: var(--muted); margin-bottom: 34px; }
 
 /* contact */
-.contact-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px; align-items: stretch; }
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-rows: minmax(420px, auto);
+  gap: 28px;
+  align-items: stretch;
+}
 .map-ph {
   position: relative;
   border: 1px solid var(--line-soft);
@@ -356,7 +365,29 @@ section.block { padding: 104px 0; position: relative; }
 }
 .map-ph .pin { position: absolute; top: 46%; left: 48%; width: 18px; height: 18px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--gold); box-shadow: 0 0 0 8px rgba(201, 168, 106, 0.18); }
 .map-ph .lbl { position: absolute; top: 16px; left: 16px; font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--muted); }
-.contact-info { border: 1px solid var(--line-soft); border-radius: var(--r-card); padding: 38px; background: var(--panel); }
+/* Kakao roughmap — force inner elements to fill the .map-ph container */
+.map-ph .root_daum_roughmap,
+.map-ph .root_daum_roughmap .wrap_map,
+.map-ph .root_daum_roughmap .wrap_map > .map {
+  width: 100% !important;
+  height: 100% !important;
+}
+/* "지도 크게 보기" footer link — float over the bottom so it doesn't steal height from the map */
+.map-ph .root_daum_roughmap .wrap_controllers {
+  position: absolute !important;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+}
+.contact-info {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-card);
+  padding: 38px;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+}
+.contact-info > .btn { margin-top: auto; }
 .contact-info h3 { font-family: var(--myeong); font-size: 23px; margin-bottom: 20px; }
 .info-row { display: flex; gap: 16px; padding: 15px 0; border-bottom: 1px solid var(--line-soft); font-size: 15px; }
 .info-row:last-of-type { border-bottom: 0; }

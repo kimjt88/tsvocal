@@ -3,15 +3,22 @@ import Link from "next/link";
 import { BrandLogo } from "../_components/brand-logo";
 import { ScrollReveal } from "../_components/scroll-reveal";
 import { SiteHeader } from "../_components/site-header";
+import { getAcademy } from "@/lib/repositories/academy";
 
-export default function SiteLayout({
+export const dynamic = "force-dynamic";
+
+export default async function SiteLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const academy = await getAcademy().catch(() => null);
+  const naverCafeUrl = academy?.naverCafeUrl?.trim() || "https://cafe.naver.com";
+  const youtubeUrl = academy?.youtubeUrl?.trim() || "https://youtube.com";
+
   return (
     <div className="site-shell">
-      <SiteHeader />
+      <SiteHeader naverCafeUrl={naverCafeUrl} youtubeUrl={youtubeUrl} />
       <a id="top" />
       {children}
       <footer className="site">
@@ -25,10 +32,10 @@ export default function SiteLayout({
               </span>
             </Link>
             <div className="foot-links">
-              <a href="https://cafe.naver.com" target="_blank" rel="noopener">
+              <a href={naverCafeUrl} target="_blank" rel="noopener">
                 네이버 카페
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener">
+              <a href={youtubeUrl} target="_blank" rel="noopener">
                 유튜브
               </a>
               <Link href="/#program">프로그램</Link>

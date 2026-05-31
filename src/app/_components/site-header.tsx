@@ -3,7 +3,13 @@
 import { useEffect, useRef } from "react";
 import { BrandLogo } from "./brand-logo";
 
-export function SiteHeader() {
+export function SiteHeader({
+  naverCafeUrl = "https://cafe.naver.com",
+  youtubeUrl = "https://youtube.com",
+}: {
+  naverCafeUrl?: string;
+  youtubeUrl?: string;
+}) {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -37,7 +43,7 @@ export function SiteHeader() {
         <div className="nav-right">
           <a
             className="soc naver"
-            href="https://cafe.naver.com"
+            href={naverCafeUrl}
             target="_blank"
             rel="noopener"
             aria-label="네이버 카페"
@@ -50,7 +56,7 @@ export function SiteHeader() {
           </a>
           <a
             className="soc youtube"
-            href="https://youtube.com"
+            href={youtubeUrl}
             target="_blank"
             rel="noopener"
             aria-label="유튜브 채널"
