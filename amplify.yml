@@ -7,12 +7,16 @@ applications:
             - npm ci --include=dev
         build:
           commands:
-            # Forward Amplify console env vars into .env.production so Next.js SSR
-            # (server components, route handlers, middleware) can read them at runtime.
-            # Without this step, only build-time substitution works and any server code
-            # touching process.env.APP_* throws "Missing required env var" at request time.
-            - env | grep -E '^(APP_|DYNAMODB_|S3_|ADMIN_|NEXT_PUBLIC_)=' >> .env.production
-            - echo "Wrote $(wc -l < .env.production) env vars to .env.production"
+            # Diagnostic: list env var names that match our app prefixes.
+            # If this prints "(none)" the Amplify console vars never reached the build container —
+            # check that variables are set at App level (Hosting → Environment variables) AND
+            # that no branch-level override is blanking them out.
+            - echo "--- env vars exposed to build (names only) ---"
+            - env | cut -d= -f1 | grep -E '^(APP_|DYNAMODB_|S3_|ADMIN_|NEXT_PUBLIC_|AWS_)' | sort || echo "(none)"
+            - echo "--- end ---"
+            # Forward to .env.production for runtime SSR; tolerate zero matches without killing the build.
+            - env | grep -E '^(APP_|DYNAMODB_|S3_|ADMIN_|NEXT_PUBLIC_)=' >> .env.production || true
+            - echo "Wrote $(wc -l < .env.production 2>/dev/null || echo 0) env vars to .env.production"
             - npm run build
       artifacts:
         baseDirectory: .next
