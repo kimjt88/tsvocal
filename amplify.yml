@@ -7,17 +7,22 @@ applications:
             - npm ci --include=dev
         build:
           commands:
-            # Diagnostic: list env var names that match our app prefixes.
-            # If this prints "(none)" the Amplify console vars never reached the build container —
-            # check that variables are set at App level (Hosting → Environment variables) AND
-            # that no branch-level override is blanking them out.
+            # Diagnostic: confirm which Amplify console env vars reach the build container.
             - echo "--- env vars exposed to build (names only) ---"
             - env | cut -d= -f1 | grep -E '^(APP_|DYNAMODB_|S3_|ADMIN_|NEXT_PUBLIC_|AWS_)' | sort || echo "(none)"
             - echo "--- end ---"
-            # Forward to .env.production for runtime SSR; tolerate zero matches without killing the build.
+            # Forward console env vars to .env.production so Next.js loads them at runtime.
             - env | grep -E '^(APP_|DYNAMODB_|S3_|ADMIN_|NEXT_PUBLIC_)=' >> .env.production || true
             - echo "Wrote $(wc -l < .env.production 2>/dev/null || echo 0) env vars to .env.production"
             - npm run build
+            # CRITICAL: artifact baseDirectory is .next, so the project-root .env.production is NOT
+            # packaged into the SSR runtime by default. Copy it into .next/ (and standalone/ if present)
+            # so the SSR Lambda's cwd contains it and @next/env loads APP_*/ADMIN_SESSION_SECRET.
+            - cp .env.production .next/.env.production 2>/dev/null || true
+            - test -d .next/standalone && cp .env.production .next/standalone/.env.production || true
+            - echo "--- .env.production locations ---"
+            - ls -la .env.production .next/.env.production .next/standalone/.env.production 2>/dev/null || true
+            - echo "--- end ---"
       artifacts:
         baseDirectory: .next
         files:
