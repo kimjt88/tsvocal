@@ -1,0 +1,24 @@
+version: 1
+applications:
+  - frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci --include=dev
+        build:
+          commands:
+            # Forward Amplify console env vars into .env.production so Next.js SSR
+            # (server components, route handlers, middleware) can read them at runtime.
+            # Without this step, only build-time substitution works and any server code
+            # touching process.env.APP_* throws "Missing required env var" at request time.
+            - env | grep -E '^(APP_|DYNAMODB_|S3_|ADMIN_|NEXT_PUBLIC_)=' >> .env.production
+            - echo "Wrote $(wc -l < .env.production) env vars to .env.production"
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*
