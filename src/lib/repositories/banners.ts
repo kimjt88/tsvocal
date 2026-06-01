@@ -10,7 +10,9 @@ export type Banner = {
   id: string;
   title: string;
   subtitle?: string;
+  kicker?: string;
   imageKey?: string;
+  bgUrl?: string;
   ctaLabel?: string;
   ctaHref?: string;
   order: number;

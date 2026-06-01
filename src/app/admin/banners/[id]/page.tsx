@@ -31,7 +31,9 @@ export default async function EditBannerPage({
         defaults={{
           title: banner.title,
           subtitle: banner.subtitle ?? "",
+          kicker: banner.kicker ?? "",
           imageKey: banner.imageKey ?? "",
+          bgUrl: banner.bgUrl ?? "",
           ctaLabel: banner.ctaLabel ?? "",
           ctaHref: banner.ctaHref ?? "",
           order: banner.order,

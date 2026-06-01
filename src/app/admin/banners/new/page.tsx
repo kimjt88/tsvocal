@@ -16,9 +16,11 @@ export default function NewBannerPage() {
         defaults={{
           title: "",
           subtitle: "",
+          kicker: "",
           imageKey: "",
-          ctaLabel: "",
-          ctaHref: "",
+          bgUrl: "",
+          ctaLabel: "무료 체험레슨 신청",
+          ctaHref: "/apply",
           order: 0,
           active: true,
         }}

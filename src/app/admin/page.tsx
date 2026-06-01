@@ -2,7 +2,11 @@ import Link from "next/link";
 
 import { listBanners } from "@/lib/repositories/banners";
 import { listEnrollments } from "@/lib/repositories/enrollments";
-import { listPrograms } from "@/lib/repositories/programs";
+import { listBeforeAfters } from "@/lib/repositories/before-afters";
+import { listClassOfferings } from "@/lib/repositories/class-offerings";
+import { listCurriculumSteps } from "@/lib/repositories/curriculum-steps";
+import { listTeachingMethods } from "@/lib/repositories/teaching-methods";
+import { listWhyFeatures } from "@/lib/repositories/why-features";
 import { listReviews } from "@/lib/repositories/reviews";
 import { listTeachers } from "@/lib/repositories/teachers";
 
@@ -23,24 +27,32 @@ const TILES = [
   { href: "/admin/academy", label: "학원 기본정보", desc: "주소·연락처·운영시간" },
   { href: "/admin/banners", label: "메인 배너", desc: "히어로 슬라이드 관리" },
   { href: "/admin/enrollments", label: "수강 신청", desc: "신청서 접수 현황" },
-  { href: "/admin/programs", label: "프로그램", desc: "보컬·피아노·작곡 등" },
+  { href: "/admin/programs", label: "프로그램 관리", desc: "강점/커리큘럼/반/수업방식/Before&After" },
   { href: "/admin/teachers", label: "강사진", desc: "강사 프로필" },
   { href: "/admin/reviews", label: "수강생 리뷰", desc: "후기 노출 관리" },
 ] as const;
 
 export default async function AdminHome() {
-  const [banners, enrollments, programs, teachers, reviews] = await Promise.all([
+  const [banners, enrollments, why, curriculum, classes, teaching, beforeAfter, teachers, reviews] = await Promise.all([
     safeCount(listBanners()),
     safeCount(listEnrollments()),
-    safeCount(listPrograms()),
+    safeCount(listWhyFeatures()),
+    safeCount(listCurriculumSteps()),
+    safeCount(listClassOfferings()),
+    safeCount(listTeachingMethods()),
+    safeCount(listBeforeAfters()),
     safeCount(listTeachers()),
     safeCount(listReviews()),
   ]);
+  const programsTotal = [why, curriculum, classes, teaching, beforeAfter].reduce<number | null>(
+    (sum, v) => (sum === null || v === null ? null : sum + v),
+    0,
+  );
 
   const stats = [
     { label: "배너", value: banners },
     { label: "수강 신청", value: enrollments },
-    { label: "프로그램", value: programs },
+    { label: "프로그램", value: programsTotal },
     { label: "강사", value: teachers },
     { label: "리뷰", value: reviews },
   ];

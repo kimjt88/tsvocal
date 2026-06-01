@@ -30,6 +30,14 @@ export function KakaoRoughMap({
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<!--
+  Force any http:// asset requests this iframe makes to upgrade to https://.
+  The Kakao roughmap loader detects protocol via location.protocol, which
+  inside an srcDoc iframe is "about:" — so it falls back to "http:" and
+  the parent HTTPS page blocks the mixed-content script. This directive
+  makes the browser silently upgrade those requests so the loader works.
+-->
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 <style>
   html, body { margin: 0; padding: 0; overflow: hidden; background: #0f1813; width: 100%; height: 100%; }
   .root_daum_roughmap,

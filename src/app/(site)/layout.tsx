@@ -15,14 +15,48 @@ export default async function SiteLayout({
   const academy = await getAcademy().catch(() => null);
   const naverCafeUrl = academy?.naverCafeUrl?.trim() || "https://cafe.naver.com";
   const youtubeUrl = academy?.youtubeUrl?.trim() || "https://youtube.com";
+  const instagramUrl = academy?.instagramUrl?.trim();
   const academyName = academy?.name?.trim() || "TS보컬학원";
   const academyTagline = academy?.tagline?.trim() || "Time Save Vocal";
   const registrationNumber = academy?.registrationNumber?.trim() || "제0000호";
   const representativeName = academy?.representativeName?.trim() || "○○○";
   const businessNumber = academy?.businessNumber?.trim() || "000-00-00000";
 
+  // LocalBusiness / EducationalOrganization JSON-LD for Google/Naver rich results.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const sameAs = [
+    academy?.naverCafeUrl?.trim(),
+    academy?.youtubeUrl?.trim(),
+    academy?.instagramUrl?.trim(),
+  ].filter((u): u is string => Boolean(u));
+  const jsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": ["EducationalOrganization", "LocalBusiness"],
+    name: academyName,
+    alternateName: academyTagline,
+    url: siteUrl,
+    inLanguage: "ko",
+    areaServed: "KR",
+  };
+  if (academy?.phone) jsonLd.telephone = academy.phone;
+  if (academy?.email) jsonLd.email = academy.email;
+  if (academy?.address) {
+    jsonLd.address = {
+      "@type": "PostalAddress",
+      streetAddress: academy.address,
+      addressCountry: "KR",
+    };
+  }
+  if (sameAs.length > 0) jsonLd.sameAs = sameAs;
+  // Silence unused — keeps relative URL ready for any further enrichment
+  void instagramUrl;
+
   return (
     <div className="site-shell">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <SiteHeader naverCafeUrl={naverCafeUrl} youtubeUrl={youtubeUrl} />
       <a id="top" />
       {children}

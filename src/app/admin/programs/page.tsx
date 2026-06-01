@@ -1,69 +1,121 @@
-import { listPrograms } from "@/lib/repositories/programs";
+import Link from "next/link";
 
-import { Badge, Card, EmptyState, LinkButton } from "../_components/ui";
+import { listBeforeAfters } from "@/lib/repositories/before-afters";
+import { listClassOfferings } from "@/lib/repositories/class-offerings";
+import { listCurriculumSteps } from "@/lib/repositories/curriculum-steps";
+import { listTeachingMethods } from "@/lib/repositories/teaching-methods";
+import { listWhyFeatures } from "@/lib/repositories/why-features";
+
+import { Card } from "../_components/ui";
 import { PageHeader } from "../_components/page-header";
-import { deleteProgramAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProgramsPage() {
-  const items = await listPrograms().catch(() => []);
+async function safeCount<T>(p: Promise<T[]>) {
+  try {
+    return (await p).length;
+  } catch {
+    return null;
+  }
+}
+
+const SECTIONS = [
+  {
+    href: "/admin/programs/why",
+    title: "학원 강점 (Why TS)",
+    desc: "메인 페이지 'Why TS' 섹션의 6개 카드",
+    counter: "why",
+  },
+  {
+    href: "/admin/programs/curriculum",
+    title: "Time Save 커리큘럼",
+    desc: "Time Save 4단계 커리큘럼 카드",
+    counter: "curriculum",
+  },
+  {
+    href: "/admin/programs/classes",
+    title: "대상별 반",
+    desc: "취미반 / 실력 향상반 / 입시반 카드",
+    counter: "classes",
+  },
+  {
+    href: "/admin/programs/teaching",
+    title: "수업 방식 (How we teach)",
+    desc: "수업은 이렇게 진행돼요 카드",
+    counter: "teaching",
+  },
+  {
+    href: "/admin/programs/before-after",
+    title: "Before & After",
+    desc: "짧은 시간, 분명한 변화 케이스",
+    counter: "before-after",
+  },
+] as const;
+
+export default async function ProgramsHubPage() {
+  const [why, curriculum, classes, teaching, beforeAfter] = await Promise.all([
+    safeCount(listWhyFeatures()),
+    safeCount(listCurriculumSteps()),
+    safeCount(listClassOfferings()),
+    safeCount(listTeachingMethods()),
+    safeCount(listBeforeAfters()),
+  ]);
+  const counters: Record<string, number | null> = {
+    why,
+    curriculum,
+    classes,
+    teaching,
+    "before-after": beforeAfter,
+  };
+
   return (
     <>
       <PageHeader
-        title="프로그램"
-        description="공개 사이트 프로그램 섹션에 노출됩니다."
-        action={<LinkButton href="/admin/programs/new">+ 새 프로그램</LinkButton>}
+        title="프로그램 관리"
+        description="메인 페이지의 프로그램 관련 섹션을 모두 여기서 관리합니다. 각 섹션이 비어 있으면 기본 디자인이 자동으로 표시됩니다."
       />
 
-      {items.length === 0 ? (
-        <EmptyState
-          title="등록된 프로그램이 없습니다"
-          action={<LinkButton href="/admin/programs/new">+ 새 프로그램</LinkButton>}
-        />
-      ) : (
-        <Card>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-left text-xs text-slate-500">
-                <th className="px-5 py-3 font-medium">순서</th>
-                <th className="px-5 py-3 font-medium">이름</th>
-                <th className="px-5 py-3 font-medium">서브타이틀</th>
-                <th className="px-5 py-3 font-medium">상태</th>
-                <th className="px-5 py-3 font-medium w-1"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((p) => (
-                <tr key={p.id} className="border-b last:border-0 border-slate-100">
-                  <td className="px-5 py-3 text-slate-500">{p.order}</td>
-                  <td className="px-5 py-3 font-medium text-slate-900">{p.name}</td>
-                  <td className="px-5 py-3 text-slate-600">{p.subtitle ?? "—"}</td>
-                  <td className="px-5 py-3">
-                    {p.active ? <Badge tone="success">노출</Badge> : <Badge>숨김</Badge>}
-                  </td>
-                  <td className="px-5 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-2 justify-end">
-                      <LinkButton href={`/admin/programs/${p.id}`} variant="secondary">
-                        편집
-                      </LinkButton>
-                      <form action={deleteProgramAction}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <button
-                          type="submit"
-                          className="h-9 px-3.5 rounded-md text-sm font-medium text-rose-600 hover:bg-rose-50 transition"
-                        >
-                          삭제
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {SECTIONS.map((s) => {
+          const count = counters[s.counter];
+          return (
+            <Link
+              key={s.href}
+              href={s.href}
+              className="block bg-white border border-slate-200 rounded-lg p-5 hover:border-slate-900 hover:shadow-sm transition"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium text-slate-900">{s.title}</div>
+                  <div className="text-xs text-slate-500 mt-1">{s.desc}</div>
+                </div>
+                <div className="text-2xl font-semibold text-slate-900 leading-none">
+                  {count === null ? "—" : count}
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-slate-400">
+                {count === null
+                  ? "(데이터 불러오기 실패)"
+                  : count === 0
+                  ? "등록된 항목 없음 — 기본값 표시 중"
+                  : `${count}개 등록됨`}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+
+      <Card className="mt-6 p-5">
+        <div className="text-sm text-slate-700">
+          <p className="mb-2">
+            <strong>참고:</strong> 각 섹션은 <em>등록된 항목이 0개일 때</em> 디자인 시안의 기본 콘텐츠를
+            자동으로 보여줍니다. 하나라도 등록하면 등록된 항목만 노출됩니다.
+          </p>
+          <p className="text-xs text-slate-500">
+            메인 페이지의 다른 영역(메인 배너 · 강사진 · 수강생 리뷰 · 학원 정보)은 좌측 사이드바의 해당 메뉴에서 관리합니다.
+          </p>
+        </div>
+      </Card>
     </>
   );
 }

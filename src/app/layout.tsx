@@ -17,10 +17,69 @@ const nanumMyeongjo = Nanum_Myeongjo({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "TS보컬학원 — Time Save Vocal",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "TS보컬학원 — Time Save Vocal | 1:1 맞춤 보컬레슨",
+    template: "%s | TS보컬학원",
+  },
   description:
-    "TS는 Time Save. 검증된 1:1 맞춤 커리큘럼으로 보컬·피아노·작곡을 가장 빠르게 익히는 ts보컬학원입니다.",
+    "TS보컬학원은 발성 교정·믹스보이스·실용음악 입시까지 1:1 맞춤 커리큘럼으로 가르치는 보컬 전문 학원입니다. 무료 체험레슨 신청 가능.",
+  keywords: [
+    "TS보컬학원",
+    "보컬학원",
+    "보컬레슨",
+    "발성 교정",
+    "믹스보이스",
+    "실용음악 입시",
+    "1:1 보컬레슨",
+    "노래 학원",
+    "성인 보컬",
+    "Time Save Vocal",
+  ],
+  authors: [{ name: "TS보컬학원" }],
+  creator: "TS보컬학원",
+  publisher: "TS보컬학원",
+  formatDetection: { email: false, address: false, telephone: false },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: SITE_URL,
+    siteName: "TS보컬학원 — Time Save Vocal",
+    title: "TS보컬학원 — Time Save Vocal | 1:1 맞춤 보컬레슨",
+    description:
+      "발성 교정·믹스보이스·실용음악 입시까지 1:1 맞춤 커리큘럼. 무료 체험레슨 신청 가능.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TS보컬학원 — Time Save Vocal",
+    description:
+      "발성 교정·믹스보이스·실용음악 입시까지 1:1 맞춤 커리큘럼. 무료 체험레슨 신청 가능.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: {
+      ...(process.env.NAVER_SITE_VERIFICATION
+        ? { "naver-site-verification": process.env.NAVER_SITE_VERIFICATION }
+        : {}),
+    },
+  },
+  category: "education",
 };
 
 export default function RootLayout({

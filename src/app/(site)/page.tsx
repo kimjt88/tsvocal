@@ -2,9 +2,155 @@
 import { HeroBanner } from "../_components/hero-banner";
 import { KakaoRoughMap } from "../_components/kakao-rough-map";
 import { getAcademy } from "@/lib/repositories/academy";
+import { listBanners } from "@/lib/repositories/banners";
+import { listBeforeAfters } from "@/lib/repositories/before-afters";
+import { listClassOfferings } from "@/lib/repositories/class-offerings";
+import { listCurriculumSteps } from "@/lib/repositories/curriculum-steps";
+import { listReviews } from "@/lib/repositories/reviews";
 import { listTeachers } from "@/lib/repositories/teachers";
+import { listTeachingMethods } from "@/lib/repositories/teaching-methods";
+import { listWhyFeatures } from "@/lib/repositories/why-features";
+import type { HeroSlide } from "../_components/hero-banner";
 
 const S3_BASE = process.env.NEXT_PUBLIC_S3_BASE_URL ?? "";
+
+// Mask all characters except the first with "○" — preserves the surname,
+// hides identifiable given name. e.g., "김민수" → "김○○". Pre-masked names
+// (containing "○" already) are returned unchanged so legacy/admin-entered
+// values like "박○○" stay intact.
+function maskStudentName(name: string): string {
+  if (!name) return "";
+  if (name.includes("○")) return name;
+  if (name.length <= 1) return name;
+  return name.charAt(0) + "○".repeat(name.length - 1);
+}
+
+const FALLBACK_SLIDES: HeroSlide[] = [
+  {
+    bg: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1600&q=80&auto=format&fit=crop",
+    kicker: "Time Save Vocal",
+    title: "소리의 *품격*을\n가장 빠르게",
+    subtitle:
+      "TS는 Time Save. 불필요한 시간 낭비 없이, 검증된 1:1 맞춤 커리큘럼으로 가장 짧은 길을 안내합니다.",
+    ctaLabel: "무료 체험레슨 신청",
+    ctaHref: "/apply",
+  },
+  {
+    bg: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1600&q=80&auto=format&fit=crop",
+    kicker: "발성 · 믹스보이스",
+    title: "발성 교정부터\n*믹스보이스*까지",
+    subtitle: "목에 무리 없는 발성, 편안한 고음. 음역대 진단으로 시작해 나에게 꼭 맞는 트레이닝을 설계합니다.",
+    ctaLabel: "무료 체험레슨 신청",
+    ctaHref: "/apply",
+  },
+  {
+    bg: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1600&q=80&auto=format&fit=crop",
+    kicker: "취미 · 입시 · 프로",
+    title: "취미부터 입시·프로까지\n*한 곳*에서",
+    subtitle: "담임 강사 책임 관리와 연습실 무료 대여까지. 목표가 무엇이든 끝까지 함께 성장합니다.",
+    ctaLabel: "무료 체험레슨 신청",
+    ctaHref: "/apply",
+  },
+];
+
+const FALLBACK_REVIEWS = [
+  {
+    studentName: "박○○",
+    studentInfo: "취미 보컬 · 5개월차",
+    rating: 5,
+    body: "발성부터 다시 잡아주셔서 노래할 때 목이 금방 피곤하던 게 사라졌어요. 불필요한 연습 없이 필요한 것만 콕콕 짚어주시는 게 좋아요.",
+  },
+  {
+    studentName: "정○○",
+    studentInfo: "믹스보이스 · 8개월차",
+    rating: 5,
+    body: "직장 다니면서 주 1회 다니는데도 시간 대비 효과가 확실해요. 매번 녹음해서 피드백을 주시니까 집에서 연습하기도 편해요.",
+  },
+  {
+    studentName: "최○○",
+    studentInfo: "실용음악 입시 · 합격생",
+    rating: 5,
+    body: "입시 준비로 와서 담임 선생님이 끝까지 챙겨주셨어요. 계획표대로 진도가 나가서 불안하지 않고 준비할 수 있었습니다.",
+  },
+];
+
+const FALLBACK_WHY = [
+  { number: "01", title: "Time Save 커리큘럼", description: "음역대·목표를 진단해, 돌아가지 않고 최단 시간에 도달하는 레슨 플랜을 설계합니다." },
+  { number: "02", title: "분야별 최정예 강사진", description: "보컬·뮤지컬·성악·피아노·작곡 각 분야 전문 강사가 직접 지도합니다." },
+  { number: "03", title: "담임 강사 시스템", description: "한 명의 담임이 끝까지 책임지고 성장 과정을 함께합니다." },
+  { number: "04", title: "다양한 레슨 과목", description: "발성교정·믹스보이스부터 입시·실용음악까지 폭넓게 다룹니다." },
+  { number: "05", title: "넓고 쾌적한 레슨실", description: "방음·음향이 갖춰진 독립 레슨실에서 집중해 배웁니다." },
+  { number: "06", title: "연습실 무료 대여", description: "수강생이라면 언제든 연습실을 무료로 사용할 수 있습니다." },
+];
+
+const FALLBACK_CURRICULUM = [
+  { number: "01", title: "음성 진단", description: "음역대·호흡·발성 습관을 진단하고 목표를 설정합니다." },
+  { number: "02", title: "발성 교정", description: "호흡 지지와 후두 안정으로 무리 없는 소리의 기초를 잡습니다." },
+  { number: "03", title: "믹스보이스", description: "흉성과 두성을 연결해 편안한 고음과 음색을 확장합니다." },
+  { number: "04", title: "곡 적용 · 완성", description: "원하는 곡에 테크닉을 적용해 무대에서 쓸 수 있게 완성합니다." },
+];
+
+const FALLBACK_CLASSES = [
+  {
+    badge: "Hobby",
+    name: "취미반",
+    forWhom: "노래가 좋아서 시작하는 분",
+    features: ["스트레스 없이 즐기는 1:1 레슨", "좋아하는 곡 중심 진행", "발성 기초 + 음정·박자 교정"],
+    frequency: "주 1회",
+    sessionLength: "회당 50분",
+    featured: false,
+  },
+  {
+    badge: "Pro · 추천",
+    name: "실력 향상반",
+    forWhom: "제대로 배우고 싶은 분",
+    features: ["믹스보이스 집중 트레이닝", "매 수업 녹음 + 피드백", "연습실 무료 대여", "담임 강사 책임 관리"],
+    frequency: "주 1~2회",
+    sessionLength: "회당 50분",
+    featured: true,
+  },
+  {
+    badge: "Admission",
+    name: "입시반",
+    forWhom: "실용음악과 진학 준비생",
+    features: ["지정곡·자유곡 완성", "시창청음 · 코드 반주 병행", "입시 일정 맞춤 플랜"],
+    frequency: "주 2회+",
+    sessionLength: "맞춤 편성",
+    featured: false,
+  },
+];
+
+const FALLBACK_TEACHING = [
+  { icon: "◎", title: "1:1 개인 맞춤", description: "그룹이 아닌 개인 레슨으로, 나의 음색과 진도에 맞춰 진행합니다." },
+  { icon: "●", title: "매 수업 녹음", description: "레슨을 녹음해 변화를 직접 확인하고 복습할 수 있습니다." },
+  { icon: "♪", title: "연습실 무료 대여", description: "수강생은 빈 시간 연습실을 무료로 사용할 수 있습니다." },
+  { icon: "✦", title: "담임 책임 관리", description: "한 명의 담임 강사가 목표 달성까지 함께합니다." },
+];
+
+const FALLBACK_BEFORE_AFTER = [
+  {
+    initial: "K",
+    studentName: "30대 직장인 · 김○○",
+    studentInfo: "취미반 · 수강 3개월",
+    metrics: [
+      { label: "최고음 음역대", change: "+5키", before: 45, after: 78 },
+      { label: "호흡 지지력", change: "향상", before: 50, after: 82 },
+      { label: "믹스보이스", change: "안정화", before: 28, after: 72 },
+    ],
+    quote: "“고음만 가면 갈라졌는데, 이제 목에 힘 안 주고도 편하게 올라가요.”",
+  },
+  {
+    initial: "L",
+    studentName: "입시 준비생 · 이○○",
+    studentInfo: "입시반 · 수강 6개월",
+    metrics: [
+      { label: "음정 안정도", change: "+↑", before: 55, after: 88 },
+      { label: "성량 · 발성", change: "향상", before: 48, after: 84 },
+      { label: "고음 발성", change: "+4키", before: 38, after: 80 },
+    ],
+    quote: "“6개월 만에 원하던 학교 실기 기준을 넘겨서 합격했어요.”",
+  },
+];
 
 const FALLBACK_TEACHERS = [
   {
@@ -36,10 +182,30 @@ const FALLBACK_TEACHERS = [
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [academy, teachersDb] = await Promise.all([
-    getAcademy().catch(() => null),
-    listTeachers().catch(() => []),
-  ]);
+  const [academy, teachersDb, reviewsDb, bannersDb, whyDb, curriculumDb, classesDb, teachingDb, beforeAfterDb] =
+    await Promise.all([
+      getAcademy().catch(() => null),
+      listTeachers().catch(() => []),
+      listReviews().catch(() => []),
+      listBanners().catch(() => []),
+      listWhyFeatures().catch(() => []),
+      listCurriculumSteps().catch(() => []),
+      listClassOfferings().catch(() => []),
+      listTeachingMethods().catch(() => []),
+      listBeforeAfters().catch(() => []),
+    ]);
+  const activeBanners = bannersDb.filter((b) => b.active);
+  const slides: HeroSlide[] =
+    activeBanners.length > 0
+      ? activeBanners.map((b) => ({
+          bg: b.bgUrl?.trim() || (b.imageKey ? `${S3_BASE}/${encodeURI(b.imageKey)}` : ""),
+          kicker: b.kicker || undefined,
+          title: b.title,
+          subtitle: b.subtitle || undefined,
+          ctaLabel: b.ctaLabel || undefined,
+          ctaHref: b.ctaHref || undefined,
+        }))
+      : FALLBACK_SLIDES;
   const activeTeachers = teachersDb.filter((t) => t.active);
   const teachers =
     activeTeachers.length > 0
@@ -49,6 +215,26 @@ export default async function Home() {
           photoUrl: t.photoKey ? `${S3_BASE}/${encodeURI(t.photoKey)}` : "",
         }))
       : FALLBACK_TEACHERS;
+  const activeWhy = whyDb.filter((w) => w.active);
+  const whyFeatures = activeWhy.length > 0 ? activeWhy : FALLBACK_WHY;
+  const activeCurriculum = curriculumDb.filter((c) => c.active);
+  const curriculum = activeCurriculum.length > 0 ? activeCurriculum : FALLBACK_CURRICULUM;
+  const activeClasses = classesDb.filter((c) => c.active);
+  const classes = activeClasses.length > 0 ? activeClasses : FALLBACK_CLASSES;
+  const activeTeaching = teachingDb.filter((t) => t.active);
+  const teaching = activeTeaching.length > 0 ? activeTeaching : FALLBACK_TEACHING;
+  const activeBeforeAfter = beforeAfterDb.filter((b) => b.active);
+  const beforeAfter = activeBeforeAfter.length > 0 ? activeBeforeAfter : FALLBACK_BEFORE_AFTER;
+  const visibleReviews = reviewsDb.filter((r) => r.visible);
+  const reviews =
+    visibleReviews.length > 0
+      ? visibleReviews.map((r) => ({
+          studentName: r.studentName,
+          studentInfo: r.studentInfo ?? "",
+          rating: Math.max(1, Math.min(5, r.rating || 5)),
+          body: r.body,
+        }))
+      : FALLBACK_REVIEWS;
   const info = {
     name: academy?.name ?? "TS보컬학원",
     address: academy?.address ?? "서울 ○○구 ○○로 00, 0층 · ○○역 0번 출구 도보 5분",
@@ -63,7 +249,7 @@ export default async function Home() {
   };
   return (
     <>
-      <HeroBanner />
+      <HeroBanner slides={slides} />
 
       <section className="block" id="why">
         <div className="wrap">
@@ -73,36 +259,13 @@ export default async function Home() {
             <p>한 명 한 명의 음색과 목표가 다르기에, 사람에 맞춘 시스템으로 레슨합니다.</p>
           </div>
           <div className="feat-grid">
-            <div className="feat">
-              <div className="no">01</div>
-              <h3>Time Save 커리큘럼</h3>
-              <p>음역대·목표를 진단해, 돌아가지 않고 최단 시간에 도달하는 레슨 플랜을 설계합니다.</p>
-            </div>
-            <div className="feat">
-              <div className="no">02</div>
-              <h3>분야별 최정예 강사진</h3>
-              <p>보컬·뮤지컬·성악·피아노·작곡 각 분야 전문 강사가 직접 지도합니다.</p>
-            </div>
-            <div className="feat">
-              <div className="no">03</div>
-              <h3>담임 강사 시스템</h3>
-              <p>한 명의 담임이 끝까지 책임지고 성장 과정을 함께합니다.</p>
-            </div>
-            <div className="feat">
-              <div className="no">04</div>
-              <h3>다양한 레슨 과목</h3>
-              <p>발성교정·믹스보이스부터 입시·실용음악까지 폭넓게 다룹니다.</p>
-            </div>
-            <div className="feat">
-              <div className="no">05</div>
-              <h3>넓고 쾌적한 레슨실</h3>
-              <p>방음·음향이 갖춰진 독립 레슨실에서 집중해 배웁니다.</p>
-            </div>
-            <div className="feat">
-              <div className="no">06</div>
-              <h3>연습실 무료 대여</h3>
-              <p>수강생이라면 언제든 연습실을 무료로 사용할 수 있습니다.</p>
-            </div>
+            {whyFeatures.map((f, i) => (
+              <div className="feat" key={`why-${i}`}>
+                <div className="no">{f.number || String(i + 1).padStart(2, "0")}</div>
+                <h3>{f.title}</h3>
+                <p>{f.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -115,26 +278,13 @@ export default async function Home() {
             <p>믹스보이스 발성 · 미국 IVA · 세스릭스 발성법 · 음성 교정 · 뮤지컬·성악 · 실용음악 입시까지. 돌아가지 않도록 검증된 순서로 진행합니다.</p>
           </div>
           <div className="steps">
-            <div className="step">
-              <div className="n">01</div>
-              <h3>음성 진단</h3>
-              <p>음역대·호흡·발성 습관을 진단하고 목표를 설정합니다.</p>
-            </div>
-            <div className="step">
-              <div className="n">02</div>
-              <h3>발성 교정</h3>
-              <p>호흡 지지와 후두 안정으로 무리 없는 소리의 기초를 잡습니다.</p>
-            </div>
-            <div className="step">
-              <div className="n">03</div>
-              <h3>믹스보이스</h3>
-              <p>흉성과 두성을 연결해 편안한 고음과 음색을 확장합니다.</p>
-            </div>
-            <div className="step">
-              <div className="n">04</div>
-              <h3>곡 적용 · 완성</h3>
-              <p>원하는 곡에 테크닉을 적용해 무대에서 쓸 수 있게 완성합니다.</p>
-            </div>
+            {curriculum.map((c, i) => (
+              <div className="step" key={`step-${i}`}>
+                <div className="n">{c.number || String(i + 1).padStart(2, "0")}</div>
+                <h3>{c.title}</h3>
+                <p>{c.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -147,59 +297,26 @@ export default async function Home() {
             <p>취미부터 입시·프로까지, 목표에 맞는 반으로 시작하세요.</p>
           </div>
           <div className="cls-grid">
-            <div className="cls">
-              <div className="badge">Hobby</div>
-              <h3>취미반</h3>
-              <div className="for">노래가 좋아서 시작하는 분</div>
-              <ul>
-                <li>스트레스 없이 즐기는 1:1 레슨</li>
-                <li>좋아하는 곡 중심 진행</li>
-                <li>발성 기초 + 음정·박자 교정</li>
-              </ul>
-              <div className="price">
-                <b>주 1회</b> <span>/ 회당 50분</span>
+            {classes.map((c, i) => (
+              <div className={c.featured ? "cls feature" : "cls"} key={`cls-${i}`}>
+                {c.badge && <div className="badge">{c.badge}</div>}
+                <h3>{c.name}</h3>
+                {c.forWhom && <div className="for">{c.forWhom}</div>}
+                <ul>
+                  {c.features.map((f, j) => (
+                    <li key={j}>{f}</li>
+                  ))}
+                </ul>
+                <div className="price">
+                  {c.frequency && <b>{c.frequency}</b>}
+                  {c.sessionLength && <span> / {c.sessionLength}</span>}
+                </div>
+                <a className="btn btn-primary" href="/apply">
+                  체험 신청
+                </a>
               </div>
-              <a className="btn btn-primary" href="/apply">
-                체험 신청
-              </a>
-            </div>
-            <div className="cls feature">
-              <div className="badge">Pro · 추천</div>
-              <h3>실력 향상반</h3>
-              <div className="for">제대로 배우고 싶은 분</div>
-              <ul>
-                <li>믹스보이스 집중 트레이닝</li>
-                <li>매 수업 녹음 + 피드백</li>
-                <li>연습실 무료 대여</li>
-                <li>담임 강사 책임 관리</li>
-              </ul>
-              <div className="price">
-                <b>주 1~2회</b> <span>/ 회당 50분</span>
-              </div>
-              <a className="btn btn-primary" href="/apply">
-                체험 신청
-              </a>
-            </div>
-            <div className="cls">
-              <div className="badge">Admission</div>
-              <h3>입시반</h3>
-              <div className="for">실용음악과 진학 준비생</div>
-              <ul>
-                <li>지정곡·자유곡 완성</li>
-                <li>시창청음 · 코드 반주 병행</li>
-                <li>입시 일정 맞춤 플랜</li>
-              </ul>
-              <div className="price">
-                <b>주 2회+</b> <span>/ 맞춤 편성</span>
-              </div>
-              <a className="btn btn-primary" href="/apply">
-                체험 신청
-              </a>
-            </div>
+            ))}
           </div>
-          <p style={{ textAlign: "center", color: "var(--muted)", fontSize: "12.5px", marginTop: "18px", opacity: 0.8 }}>
-            * 횟수·구성은 예시입니다. 실제 수강료·시간표를 어드민에서 갱신할 수 있어요.
-          </p>
         </div>
       </section>
 
@@ -210,34 +327,15 @@ export default async function Home() {
             <h2>수업은 이렇게 진행돼요</h2>
           </div>
           <div className="how-grid">
-            <div className="how">
-              <div className="ic">◎</div>
-              <div>
-                <h3>1:1 개인 맞춤</h3>
-                <p>그룹이 아닌 개인 레슨으로, 나의 음색과 진도에 맞춰 진행합니다.</p>
+            {teaching.map((t, i) => (
+              <div className="how" key={`how-${i}`}>
+                <div className="ic">{t.icon}</div>
+                <div>
+                  <h3>{t.title}</h3>
+                  <p>{t.description}</p>
+                </div>
               </div>
-            </div>
-            <div className="how">
-              <div className="ic">●</div>
-              <div>
-                <h3>매 수업 녹음</h3>
-                <p>레슨을 녹음해 변화를 직접 확인하고 복습할 수 있습니다.</p>
-              </div>
-            </div>
-            <div className="how">
-              <div className="ic">♪</div>
-              <div>
-                <h3>연습실 무료 대여</h3>
-                <p>수강생은 빈 시간 연습실을 무료로 사용할 수 있습니다.</p>
-              </div>
-            </div>
-            <div className="how">
-              <div className="ic">✦</div>
-              <div>
-                <h3>담임 책임 관리</h3>
-                <p>한 명의 담임 강사가 목표 달성까지 함께합니다.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -275,90 +373,30 @@ export default async function Home() {
             <p>입학 시점과 수강 후의 음성 변화입니다. 같은 곡·같은 키로 부른 결과를 비교합니다.</p>
           </div>
           <div className="ba-grid">
-            <div className="ba-card">
-              <div className="ba-top">
-                <div className="who">K</div>
-                <div>
-                  <b>30대 직장인 · 김○○</b>
-                  <span>취미반 · 수강 3개월</span>
+            {beforeAfter.map((b, i) => (
+              <div className="ba-card" key={`ba-${i}`}>
+                <div className="ba-top">
+                  <div className="who">{b.initial || b.studentName.charAt(0)}</div>
+                  <div>
+                    <b>{b.studentName}</b>
+                    {b.studentInfo && <span>{b.studentInfo}</span>}
+                  </div>
                 </div>
+                {b.metrics.map((m, j) => (
+                  <div className="ba-metric" key={j}>
+                    <div className="lab">
+                      <span>{m.label}</span>
+                      <em>{m.change}</em>
+                    </div>
+                    <div className="ba-track">
+                      <span className="after" style={{ width: `${Math.max(0, Math.min(100, m.after))}%` }} />
+                      <span className="before" style={{ width: `${Math.max(0, Math.min(100, m.before))}%` }} />
+                    </div>
+                  </div>
+                ))}
+                {b.quote && <div className="ba-quote">{b.quote}</div>}
               </div>
-              <div className="ba-metric">
-                <div className="lab">
-                  <span>최고음 음역대</span>
-                  <em>+5키</em>
-                </div>
-                <div className="ba-track">
-                  <span className="after" style={{ width: "78%" }} />
-                  <span className="before" style={{ width: "45%" }} />
-                </div>
-              </div>
-              <div className="ba-metric">
-                <div className="lab">
-                  <span>호흡 지지력</span>
-                  <em>향상</em>
-                </div>
-                <div className="ba-track">
-                  <span className="after" style={{ width: "82%" }} />
-                  <span className="before" style={{ width: "50%" }} />
-                </div>
-              </div>
-              <div className="ba-metric">
-                <div className="lab">
-                  <span>믹스보이스</span>
-                  <em>안정화</em>
-                </div>
-                <div className="ba-track">
-                  <span className="after" style={{ width: "72%" }} />
-                  <span className="before" style={{ width: "28%" }} />
-                </div>
-              </div>
-              <div className="ba-quote">
-                “고음만 가면 갈라졌는데, 이제 목에 힘 안 주고도 편하게 올라가요.”
-              </div>
-            </div>
-            <div className="ba-card">
-              <div className="ba-top">
-                <div className="who">L</div>
-                <div>
-                  <b>입시 준비생 · 이○○</b>
-                  <span>입시반 · 수강 6개월</span>
-                </div>
-              </div>
-              <div className="ba-metric">
-                <div className="lab">
-                  <span>음정 안정도</span>
-                  <em>+↑</em>
-                </div>
-                <div className="ba-track">
-                  <span className="after" style={{ width: "88%" }} />
-                  <span className="before" style={{ width: "55%" }} />
-                </div>
-              </div>
-              <div className="ba-metric">
-                <div className="lab">
-                  <span>성량 · 발성</span>
-                  <em>향상</em>
-                </div>
-                <div className="ba-track">
-                  <span className="after" style={{ width: "84%" }} />
-                  <span className="before" style={{ width: "48%" }} />
-                </div>
-              </div>
-              <div className="ba-metric">
-                <div className="lab">
-                  <span>고음 발성</span>
-                  <em>+4키</em>
-                </div>
-                <div className="ba-track">
-                  <span className="after" style={{ width: "80%" }} />
-                  <span className="before" style={{ width: "38%" }} />
-                </div>
-              </div>
-              <div className="ba-quote">
-                “6개월 만에 원하던 학교 실기 기준을 넘겨서 합격했어요.”
-              </div>
-            </div>
+            ))}
           </div>
           <div className="ba-legend">
             <span>
@@ -370,7 +408,6 @@ export default async function Home() {
               수강 후
             </span>
           </div>
-          <p className="ba-note">* 위 수치는 이해를 돕기 위한 예시입니다. 실제 수강생 데이터·음성 샘플로 교체할 수 있어요.</p>
         </div>
       </section>
 
@@ -382,45 +419,22 @@ export default async function Home() {
             <p>TS보컬학원을 먼저 경험한 분들의 솔직한 후기입니다.</p>
           </div>
           <div className="rev-grid">
-            <div className="rev">
-              <div className="stars">★★★★★</div>
-              <q>
-                발성부터 다시 잡아주셔서 노래할 때 목이 금방 피곤하던 게 사라졌어요. 불필요한 연습 없이 필요한 것만 콕콕 짚어주시는 게 좋아요.
-              </q>
-              <div className="by">
-                <div className="av">P</div>
-                <div>
-                  <b>박○○</b>
-                  <span>취미 보컬 · 5개월차</span>
+            {reviews.map((r, i) => (
+              <div className="rev" key={`${r.studentName}-${i}`}>
+                <div className="stars" aria-label={`${r.rating}점`}>
+                  {"★".repeat(r.rating)}
+                  {"☆".repeat(5 - r.rating)}
+                </div>
+                <q>{r.body}</q>
+                <div className="by">
+                  <div className="av">{r.studentName.charAt(0)}</div>
+                  <div>
+                    <b>{maskStudentName(r.studentName)}</b>
+                    {r.studentInfo && <span>{r.studentInfo}</span>}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="rev">
-              <div className="stars">★★★★★</div>
-              <q>
-                직장 다니면서 주 1회 다니는데도 시간 대비 효과가 확실해요. 매번 녹음해서 피드백을 주시니까 집에서 연습하기도 편해요.
-              </q>
-              <div className="by">
-                <div className="av">J</div>
-                <div>
-                  <b>정○○</b>
-                  <span>믹스보이스 · 8개월차</span>
-                </div>
-              </div>
-            </div>
-            <div className="rev">
-              <div className="stars">★★★★★</div>
-              <q>
-                입시 준비로 와서 담임 선생님이 끝까지 챙겨주셨어요. 계획표대로 진도가 나가서 불안하지 않고 준비할 수 있었습니다.
-              </q>
-              <div className="by">
-                <div className="av">C</div>
-                <div>
-                  <b>최○○</b>
-                  <span>실용음악 입시 · 합격생</span>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

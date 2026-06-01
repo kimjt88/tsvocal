@@ -8,7 +8,7 @@ const NAV = [
   { href: "/admin/academy", label: "학원 기본정보", icon: "🏫" },
   { href: "/admin/banners", label: "메인 배너", icon: "🖼" },
   { href: "/admin/enrollments", label: "수강 신청", icon: "📥" },
-  { href: "/admin/programs", label: "프로그램", icon: "🎼" },
+  { href: "/admin/programs", label: "프로그램 관리", icon: "🎼" },
   { href: "/admin/teachers", label: "강사진", icon: "👥" },
   { href: "/admin/reviews", label: "수강생 리뷰", icon: "★" },
 ] as const;
